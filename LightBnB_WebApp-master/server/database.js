@@ -7,9 +7,6 @@ const pool = new Pool({
   database: 'lightbnb'
 });
 
-const properties = require('./json/properties.json');
-const users = require('./json/users.json');
-
 /// Users
 
 /**
@@ -19,17 +16,17 @@ const users = require('./json/users.json');
  */
 const getUserWithEmail = function(email) {
   return pool
-  .query(`
+    .query(`
     SELECT * 
     FROM users
     WHERE LOWER(email) = $1;`,
     [email.toLowerCase()])
-  .then((user) => {
-    return user.rows[0];
-  })
-  .catch((err) => {
-    console.log(err.message);
-  });
+    .then((user) => {
+      return user.rows[0];
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
 };
 
 exports.getUserWithEmail = getUserWithEmail;
@@ -41,18 +38,18 @@ exports.getUserWithEmail = getUserWithEmail;
  */
 const getUserWithId = function(id) {
   return pool
-  .query(`
+    .query(`
     SELECT * 
     FROM users
     WHERE id = $1;`,
     [id])
-  .then((user) => {
-    return user.rows[0];
-  })
-  .catch((err) => {
-    console.log(err.message);
-  });
-}
+    .then((user) => {
+      return user.rows[0];
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
+};
 exports.getUserWithId = getUserWithId;
 
 
@@ -63,7 +60,7 @@ exports.getUserWithId = getUserWithId;
  */
 const addUser =  function(user) {
   return insertObjToDB('users', user);
-}
+};
 exports.addUser = addUser;
 
 /// Reservations
@@ -75,7 +72,7 @@ exports.addUser = addUser;
  */
 const getAllReservations = function(guest_id, limit = 10) {
   return pool
-  .query(`
+    .query(`
     SELECT res.*, prop.*,
       AVG(rev.rating) AS average_rating
     FROM reservations res
@@ -88,13 +85,13 @@ const getAllReservations = function(guest_id, limit = 10) {
     ORDER BY res.start_date
     LIMIT $2;`,
     [guest_id, limit])
-  .then((result) => {
-    return result.rows;
-  })
-  .catch((err) => {
-    console.log(err.message);
-  });
-}
+    .then((result) => {
+      return result.rows;
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
+};
 exports.getAllReservations = getAllReservations;
 
 /// Properties
@@ -139,7 +136,7 @@ const getAllProperties = (options, limit = 10) => {
 
   queryString += `
   GROUP BY properties.id
-  `
+  `;
 
   if (options.minimum_rating) {
     queryParams.push(options.minimum_rating);
@@ -166,7 +163,7 @@ exports.getAllProperties = getAllProperties;
 const addProperty = function(property) {
   property.cost_per_night *= 100; //Convert cost to dollars
   return insertObjToDB('properties', property);
-}
+};
 exports.addProperty = addProperty;
 
 /**
@@ -176,7 +173,7 @@ exports.addProperty = addProperty;
  * @return {Promise<{}>} A promise to the entity.
  */
 
-const insertObjToDB = function (tableName, entity) {
+const insertObjToDB = function(tableName, entity) {
   let columns = '';
   let values = '';
   const params = [];
@@ -184,8 +181,8 @@ const insertObjToDB = function (tableName, entity) {
   Object.keys(entity).forEach(key => {
     params.push(entity[key]);
     columns += `${key}, `;
-    values += `$${params.length}, `
-  })
+    values += `$${params.length}, `;
+  });
 
   const query = `
   INSERT INTO ${tableName} (${columns.slice(0,-2)})
@@ -194,11 +191,11 @@ const insertObjToDB = function (tableName, entity) {
   `;
 
   return pool
-  .query(query, params)
-  .then((user) => {
-    return user.rows[0];
-  })
-  .catch((err) => {
-    console.log(err.message);
-  });
+    .query(query, params)
+    .then((user) => {
+      return user.rows[0];
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
 };
