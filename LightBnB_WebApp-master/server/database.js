@@ -62,18 +62,7 @@ exports.getUserWithId = getUserWithId;
  * @return {Promise<{}>} A promise to the user.
  */
 const addUser =  function(user) {
-  return pool
-  .query(`
-    INSERT INTO users (name, email, password)
-    VALUES ($1, $2, $3)
-    RETURNING *;`,
-    [user.name, user.email, user.email])
-  .then((user) => {
-    return user.rows[0];
-  })
-  .catch((err) => {
-    console.log(err.message);
-  });
+  return insertObjToDB('users', user);
 }
 exports.addUser = addUser;
 
@@ -126,7 +115,7 @@ const getAllProperties = (options, limit = 10) => {
   LEFT JOIN property_reviews 
     ON properties.id = property_id
   WHERE TRUE
-  `;
+  `; //WHERE TRUE is added so that there is a WHERE clause to add all of the conditions to
 
   if (options.city) {
     queryParams.push(`%${options.city.toLowerCase()}%`);
@@ -181,3 +170,37 @@ const addProperty = function(property) {
   return Promise.resolve(property);
 }
 exports.addProperty = addProperty;
+
+/**
+ * Add entity to a database table
+ * @param {string} tableName The name of the table to insert into
+ * @param {{...}} entity The entity to be inserted, in object form. Key names will be used as names of columns to insert to.
+ * @return {Promise<{}>} A promise to the entity.
+ */
+
+const insertObjToDB = function (tableName, entity) {
+  let columns = '';
+  let values = '';
+  const params = [];
+
+  Object.keys(entity).forEach(key => {
+    params.push(entity[key]);
+    columns += `${key}, `;
+    values += `$${params.length}, `
+  })
+
+  const query = `
+  INSERT INTO ${tableName} (${columns.slice(0,-2)})
+  VALUES (${values.slice(0, -2)})
+  RETURNING *;
+  `;
+
+  return pool
+  .query(query, params)
+  .then((user) => {
+    return user.rows[0];
+  })
+  .catch((err) => {
+    console.log(err.message);
+  });
+};
