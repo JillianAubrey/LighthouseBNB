@@ -125,7 +125,7 @@ const getAllProperties = (options, limit = 10) => {
   FROM properties
   LEFT JOIN property_reviews 
     ON properties.id = property_id
-  WHERE 1 = 1
+  WHERE TRUE
   `;
 
   if (options.city) {
